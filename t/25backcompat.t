@@ -26,11 +26,11 @@ sub class_content_like;
     my $res = run_loader();
     my $warning = $res->{warnings}[0];
 
-    like $warning, qr/dynamic schema/i,
+    like $warning, qr/\Qdynamic schema/i,
         'dynamic schema in backcompat mode detected';
-    like $warning, qr/run in 0\.04006 mode/i,
+    like $warning, qr/\Qrun in 0.04006 mode/i,
         'dynamic schema in 0.04006 mode warning';
-    like $warning, qr/DBIx::Class::Schema::Loader::Manual::UpgradingFromV4/,
+    like $warning, qr/\QDBIx::Class::Schema::Loader::Manual::UpgradingFromV4/,
         'warning refers to upgrading doc';
     
     run_v4_tests($res);
@@ -66,7 +66,7 @@ sub class_content_like;
 'content for unsingularized Result.';
 
     my $warning = $res->{warnings}[0];
-    like $warning, qr/Detected external content/i,
+    like $warning, qr/\QDetected external content/i,
         'detected external content warning';
 
     lives_and { is $schema->resultset('Quux')->find(1)->a_method, 'hlagh' }
@@ -103,7 +103,7 @@ sub class_content_like;
 'content for unsingularized Result with use_namespaces.';
 
     my $warning = $res->{warnings}[0];
-    like $warning, qr/Detected external content/i,
+    like $warning, qr/\QDetected external content/i,
         'detected external content warning';
 
     lives_and { is $schema->resultset('Quux')->find(1)->a_method, 'hlagh' }
@@ -151,10 +151,10 @@ sub class_content_like;
 'unsingularized class names in external content from unchanged Result class ' .
 'names are translated in static schema';
 
-    class_content_like $schema, $res->{classes}{quuxs}, qr/package ${SCHEMA_CLASS}::Quux;/,
+    class_content_like $schema, $res->{classes}{quuxs}, qr/\Qpackage ${SCHEMA_CLASS}::Quux;/,
 'package line translated correctly from external custom content in static dump';
 
-    class_content_like $schema, $res->{classes}{quuxs}, qr/sub a_method { 'hlagh' }/,
+    class_content_like $schema, $res->{classes}{quuxs}, qr/\Qsub a_method { 'hlagh' }/,
 'external custom content loaded into static dump correctly';
 }
 
@@ -165,11 +165,11 @@ sub class_content_like;
     my $res = run_loader(static => 1);
     my $warning = $res->{warnings}[1];
 
-    like $warning, qr/static schema/i,
+    like $warning, qr/\Qstatic schema/i,
         'static schema in backcompat mode detected';
-    like $warning, qr/0.04006/,
+    like $warning, qr/\Q0.04006/,
         'correct version detected';
-    like $warning, qr/DBIx::Class::Schema::Loader::Manual::UpgradingFromV4/,
+    like $warning, qr/\QDBIx::Class::Schema::Loader::Manual::UpgradingFromV4/,
         'refers to upgrading doc';
 
     is scalar @{ $res->{warnings} }, 4,
@@ -194,10 +194,10 @@ sub class_content_like;
     );
     my $schema = $res->{schema};
 
-    like $res->{warnings}[0], qr/Dumping manual schema/i,
+    like $res->{warnings}[0], qr/\QDumping manual schema/i,
         'correct warnings on upgrading static schema (with "naming" set)';
 
-    like $res->{warnings}[1], qr/dump completed/i,
+    like $res->{warnings}[1], qr/\Qdump completed/i,
         'correct warnings on upgrading static schema (with "naming" set)';
 
     is scalar @{ $res->{warnings} }, 2,
@@ -217,7 +217,7 @@ sub class_content_like;
         $res->{classes}{bazs} }
         'unsingularized class names in custom content are translated';
 
-    class_content_like $schema, $res->{classes}{quuxs}, qr/sub b_method { 'dongs' }/,
+    class_content_like $schema, $res->{classes}{quuxs}, qr/\Qsub b_method { 'dongs' }/,
 'custom content from unsingularized Result loaded into static dump correctly';
 }
 
@@ -229,11 +229,11 @@ sub class_content_like;
     my $res = run_loader(static => 1);
     my $warning = $res->{warnings}[1];
 
-    like $warning, qr/static schema/i,
+    like $warning, qr/\Qstatic schema/i,
         'static schema in backcompat mode detected';
-    like $warning, qr/0.04006/,
+    like $warning, qr/\Q0.04006/,
         'correct version detected';
-    like $warning, qr/DBIx::Class::Schema::Loader::Manual::UpgradingFromV4/,
+    like $warning, qr/\QDBIx::Class::Schema::Loader::Manual::UpgradingFromV4/,
         'refers to upgrading doc';
 
     is scalar @{ $res->{warnings} }, 4,
@@ -252,15 +252,15 @@ sub class_content_like;
     );
     my $schema = $res->{schema};
 
-    like $res->{warnings}[0], qr/load_classes/i,
+    like $res->{warnings}[0], qr/\Qload_classes/i,
 'correct warnings on upgrading static schema (with "naming" set and ' .
 'use_namespaces not set)';
 
-    like $res->{warnings}[1], qr/Dumping manual schema/i,
+    like $res->{warnings}[1], qr/\QDumping manual schema/i,
 'correct warnings on upgrading static schema (with "naming" set and ' .
 'use_namespaces not set)';
 
-    like $res->{warnings}[2], qr/dump completed/i,
+    like $res->{warnings}[2], qr/\Qdump completed/i,
 'correct warnings on upgrading static schema (with "naming" set and ' .
 'use_namespaces not set)';
 
@@ -281,7 +281,7 @@ sub class_content_like;
         $res->{classes}{bazs} }
         'unsingularized class names in custom content are translated';
 
-    class_content_like $schema, $res->{classes}{quuxs}, qr/sub b_method { 'dongs' }/,
+    class_content_like $schema, $res->{classes}{quuxs}, qr/\Qsub b_method { 'dongs' }/,
 'custom content from unsingularized Result loaded into static dump correctly';
 }
 
@@ -300,11 +300,11 @@ sub class_content_like;
     my $res = run_loader(static => 1);
     my $warning = $res->{warnings}[0];
 
-    like $warning, qr/static schema/i,
+    like $warning, qr/\Qstatic schema/i,
         'static schema in backcompat mode detected';
-    like $warning, qr/0.04006/,
+    like $warning, qr/\Q0.04006/,
         'correct version detected';
-    like $warning, qr/DBIx::Class::Schema::Loader::Manual::UpgradingFromV4/,
+    like $warning, qr/\QDBIx::Class::Schema::Loader::Manual::UpgradingFromV4/,
         'refers to upgrading doc';
 
     is scalar @{ $res->{warnings} }, 3,
@@ -330,11 +330,11 @@ sub class_content_like;
     );
     my $schema = $res->{schema};
 
-    like $res->{warnings}[0], qr/Dumping manual schema/i,
+    like $res->{warnings}[0], qr/\QDumping manual schema/i,
 'correct warnings on upgrading static schema (with "naming" set and ' .
 'use_namespaces => 0)';
 
-    like $res->{warnings}[1], qr/dump completed/i,
+    like $res->{warnings}[1], qr/\Qdump completed/i,
 'correct warnings on upgrading static schema (with "naming" set and ' .
 'use_namespaces => 0)';
 
@@ -373,10 +373,10 @@ sub class_content_like;
 'unsingularized class names in external content from unchanged Result class ' .
 'names are translated in static schema';
 
-    class_content_like $schema, $res->{classes}{quuxs}, qr/sub a_method { 'hlagh' }/,
+    class_content_like $schema, $res->{classes}{quuxs}, qr/\Qsub a_method { 'hlagh' }/,
 'external content from unsingularized Result loaded into static dump correctly';
 
-    class_content_like $schema, $res->{classes}{quuxs}, qr/sub b_method { 'dongs' }/,
+    class_content_like $schema, $res->{classes}{quuxs}, qr/\Qsub b_method { 'dongs' }/,
 'custom   content from unsingularized Result loaded into static dump correctly';
 }
 
@@ -390,10 +390,10 @@ sub class_content_like;
         naming => 'current',
     );
 
-    like $res->{warnings}[0], qr/Dumping manual schema/i,
+    like $res->{warnings}[0], qr/\QDumping manual schema/i,
 'correct warnings on dumping static schema with use_namespaces => 0';
 
-    like $res->{warnings}[1], qr/dump completed/i,
+    like $res->{warnings}[1], qr/\Qdump completed/i,
 'correct warnings on dumping static schema with use_namespaces => 0';
 
     is scalar @{ $res->{warnings} }, 2,
@@ -411,13 +411,13 @@ sub class_content_like;
     # load_classes is preserved
     $res = run_loader(static => 1, naming => 'current');
 
-    like $res->{warnings}[0], qr/load_classes/i,
+    like $res->{warnings}[0], qr/\Qload_classes/i,
 'correct warnings on re-dumping static schema with load_classes';
 
-    like $res->{warnings}[1], qr/Dumping manual schema/i,
+    like $res->{warnings}[1], qr/\QDumping manual schema/i,
 'correct warnings on re-dumping static schema with load_classes';
 
-    like $res->{warnings}[2], qr/dump completed/i,
+    like $res->{warnings}[2], qr/\Qdump completed/i,
 'correct warnings on re-dumping static schema with load_classes';
 
     is scalar @{ $res->{warnings} }, 3,
@@ -437,10 +437,10 @@ sub class_content_like;
     );
     $schema = $res->{schema};
 
-    like $res->{warnings}[0], qr/Dumping manual schema/i,
+    like $res->{warnings}[0], qr/\QDumping manual schema/i,
 'correct warnings on upgrading to use_namespaces';
 
-    like $res->{warnings}[1], qr/dump completed/i,
+    like $res->{warnings}[1], qr/\Qdump completed/i,
 'correct warnings on upgrading to use_namespaces';
 
     is scalar @{ $res->{warnings} }, 2,
@@ -465,7 +465,7 @@ sub class_content_like;
         $res->{classes}{bazs} }
         'un-namespaced class names in custom content are translated';
 
-    class_content_like $schema, $res->{classes}{quuxs}, qr/sub b_method { 'dongs' }/,
+    class_content_like $schema, $res->{classes}{quuxs}, qr/\Qsub b_method { 'dongs' }/,
 'custom content from un-namespaced Result loaded into static dump correctly';
 }
 
@@ -474,10 +474,10 @@ sub class_content_like;
 {
     my $res = run_loader(clean_dumpdir => 1, static => 1, naming => 'current');
 
-    like $res->{warnings}[0], qr/Dumping manual schema/i,
+    like $res->{warnings}[0], qr/\QDumping manual schema/i,
 'correct warnings on dumping static schema';
 
-    like $res->{warnings}[1], qr/dump completed/i,
+    like $res->{warnings}[1], qr/\Qdump completed/i,
 'correct warnings on dumping static schema';
 
     is scalar @{ $res->{warnings} }, 2,
@@ -494,10 +494,10 @@ sub class_content_like;
     # test that with no use_namespaces option, use_namespaces is preserved
     $res = run_loader(static => 1, naming => 'current');
 
-    like $res->{warnings}[0], qr/Dumping manual schema/i,
+    like $res->{warnings}[0], qr/\QDumping manual schema/i,
 'correct warnings on re-dumping static schema';
 
-    like $res->{warnings}[1], qr/dump completed/i,
+    like $res->{warnings}[1], qr/\Qdump completed/i,
 'correct warnings on re-dumping static schema';
 
     is scalar @{ $res->{warnings} }, 2,
@@ -517,10 +517,10 @@ sub class_content_like;
     );
     my $schema = $res->{schema};
 
-    like $res->{warnings}[0], qr/Dumping manual schema/i,
+    like $res->{warnings}[0], qr/\QDumping manual schema/i,
 'correct warnings on downgrading to load_classes';
 
-    like $res->{warnings}[1], qr/dump completed/i,
+    like $res->{warnings}[1], qr/\Qdump completed/i,
 'correct warnings on downgrading to load_classes';
 
     is scalar @{ $res->{warnings} }, 2,
@@ -547,7 +547,7 @@ sub class_content_like;
 'namespaced class names in custom content are translated during load_classes '.
 'downgrade';
 
-    class_content_like $schema, $res->{classes}{quuxs}, qr/sub b_method { 'dongs' }/,
+    class_content_like $schema, $res->{classes}{quuxs}, qr/\Qsub b_method { 'dongs' }/,
 'custom content from namespaced Result loaded into static dump correctly '.
 'during load_classes downgrade';
 }
@@ -562,10 +562,10 @@ sub class_content_like;
         naming => 'current',
     );
 
-    like $res->{warnings}[0], qr/Dumping manual schema/i,
+    like $res->{warnings}[0], qr/\QDumping manual schema/i,
 'correct warnings on dumping static schema';
 
-    like $res->{warnings}[1], qr/dump completed/i,
+    like $res->{warnings}[1], qr/\Qdump completed/i,
 'correct warnings on dumping static schema';
 
     is scalar @{ $res->{warnings} }, 2,
@@ -583,10 +583,10 @@ sub class_content_like;
     # the custom result_namespace is preserved
     $res = run_loader(static => 1, naming => 'current');
 
-    like $res->{warnings}[0], qr/Dumping manual schema/i,
+    like $res->{warnings}[0], qr/\QDumping manual schema/i,
 'correct warnings on re-dumping static schema';
 
-    like $res->{warnings}[1], qr/dump completed/i,
+    like $res->{warnings}[1], qr/\Qdump completed/i,
 'correct warnings on re-dumping static schema';
 
     is scalar @{ $res->{warnings} }, 2,
@@ -606,10 +606,10 @@ sub class_content_like;
     );
     my $schema = $res->{schema};
 
-    like $res->{warnings}[0], qr/Dumping manual schema/i,
+    like $res->{warnings}[0], qr/\QDumping manual schema/i,
 'correct warnings on downgrading to load_classes';
 
-    like $res->{warnings}[1], qr/dump completed/i,
+    like $res->{warnings}[1], qr/\Qdump completed/i,
 'correct warnings on downgrading to load_classes';
 
     is scalar @{ $res->{warnings} }, 2,
@@ -636,7 +636,7 @@ sub class_content_like;
 'namespaced class names in custom content are translated during load_classes '.
 'downgrade';
 
-    class_content_like $schema, $res->{classes}{quuxs}, qr/sub b_method { 'dongs' }/,
+    class_content_like $schema, $res->{classes}{quuxs}, qr/\Qsub b_method { 'dongs' }/,
 'custom content from namespaced Result loaded into static dump correctly '.
 'during load_classes downgrade';
 }
@@ -676,7 +676,7 @@ sub class_content_like;
         $res->{classes}{bazs} }
 'class names in custom content are translated when rewriting result_namespace';
 
-    class_content_like $schema, $res->{classes}{quuxs}, qr/sub b_method { 'dongs' }/,
+    class_content_like $schema, $res->{classes}{quuxs}, qr/\Qsub b_method { 'dongs' }/,
 'custom content from namespaced Result loaded into static dump correctly '.
 'when rewriting result_namespace';
 
@@ -718,11 +718,11 @@ sub class_content_like;
 'class names in external content are translated when rewriting '.
 'result_namespace';
 
-    class_content_like $schema, $res->{classes}{quuxs}, qr/sub b_method { 'dongs' }/,
+    class_content_like $schema, $res->{classes}{quuxs}, qr/\Qsub b_method { 'dongs' }/,
 'custom content from namespaced Result loaded into static dump correctly '.
 'when rewriting result_namespace';
 
-    class_content_like $schema, $res->{classes}{quuxs}, qr/sub a_method { 'hlagh' }/,
+    class_content_like $schema, $res->{classes}{quuxs}, qr/\Qsub a_method { 'hlagh' }/,
 'external content from unsingularized Result loaded into static dump correctly';
 }
 
@@ -770,7 +770,7 @@ sub class_content_like;
 'unsingularized class names in custom content from Result with unchanged ' .
 'name are translated';
 
-    class_content_like $schema, $res->{classes}{bar}, qr/sub b_method { 'dongs' }/,
+    class_content_like $schema, $res->{classes}{bar}, qr/\Qsub b_method { 'dongs' }/,
 'custom content from Result with unchanged name loaded into static dump ' .
 'correctly';
 }
@@ -784,7 +784,7 @@ sub class_content_like;
 
     my $res = run_loader(static => 1);
 
-    like $res->{warnings}[0], qr/0.05003 static schema/, 'backcompat warning';
+    like $res->{warnings}[0], qr/\Q0.05003 static schema/, 'backcompat warning';
 
     run_v5_tests($res);
 
@@ -830,7 +830,7 @@ sub class_content_like;
 
     my $res = run_loader(static => 1);
 
-    like $res->{warnings}[0], qr/0.06001 static schema/, 'backcompat warning';
+    like $res->{warnings}[0], qr/\Q0.06001 static schema/, 'backcompat warning';
 
     run_v6_tests($res);
 
