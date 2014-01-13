@@ -940,8 +940,7 @@ It is safe to upgrade your existing Schema to this option.
 
 =head2 add_fatal_warnings
 
-Adds "use warnings FATAL => 'all';" after the "use strict;" line in the
-generated classes.
+Changes the use warnings line in the generated classes to add "FATAL => 'all'".
 
 The default is false.
 
@@ -2015,10 +2014,9 @@ sub _dump_to_dir {
         $src_text .= $self->_make_pod_heading($src_class);
 
         $src_text .= qq|use strict;\n|;
-        $src_text .= qq|use warnings FATAL => 'all';\n|
-            if $self->add_fatal_warnings;
-
-        $src_text .= qq|\n|;
+        $src_text .= $self->add_fatal_warnings
+            ? qq|use warnings FATAL => 'all';\n\n|
+            : qq|use warnings;\n\n|;
 
         $src_text .= $self->_base_class_pod($result_base_class)
             unless $result_base_class eq 'DBIx::Class::Core';
