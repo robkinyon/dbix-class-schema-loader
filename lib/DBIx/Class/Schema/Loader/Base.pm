@@ -113,6 +113,8 @@ __PACKAGE__->mk_group_accessors('simple', qw/
                                 moniker_parts
                                 moniker_part_separator
                                 moniker_part_map
+                                add_fatal_warnings
+                                add_deploy_hook
 /);
 
 my $CURRENT_V = 'v7';
@@ -936,6 +938,30 @@ content after the md5 sum also makes the classes immutable.
 
 It is safe to upgrade your existing Schema to this option.
 
+=head2 add_fatal_warnings
+
+Adds "use warnings FATAL => 'all';" after the "use strict;" line in the
+generated classes.
+
+The default is false.
+
+=head2 add_deploy_hook
+
+Adds a deploy_hook() method that will provide the following:
+
+=over 4
+
+=item * Any non-unique, non-primary indices
+
+=item * The MySQL table type of 'InnoDB'. (This will not affect non-MySQL databases.)
+
+=back
+
+This will behave unpredictably if you define your own deploy_hook. But, you
+really shouldn't be re-running this tool on existing files.
+
+The default is false.
+
 =head2 only_autoclean
 
 By default, we use L<MooseX::MarkAsMethods> to remove imported functions from
@@ -1195,6 +1221,7 @@ sub new {
 
     $self->use_namespaces(1) unless defined $self->use_namespaces;
     $self->generate_pod(1)   unless defined $self->generate_pod;
+    $self->add_fatal_warnings(0) unless defined $self->add_fatal_warnings;
     $self->pod_comment_mode('auto')         unless defined $self->pod_comment_mode;
     $self->pod_comment_spillover_length(60) unless defined $self->pod_comment_spillover_length;
 
@@ -1768,6 +1795,8 @@ sub _load_tables {
         @INC = grep $_ ne $self->dump_directory, @INC;
     }
 
+    foreach my $tbl (@tables) { $self->_add_deploy_hook($tbl); }
+
     foreach my $tbl                                        (@tables) { $self->_load_roles($tbl); }
     foreach my $tbl (map { $self->classes->{$_->sql_name} } @tables) { $self->_load_external($tbl); }
 
@@ -1979,13 +2008,17 @@ sub _dump_to_dir {
     foreach my $src_class (@classes) {
         my $src_text =
               qq|use utf8;\n|
-            . qq|package $src_class;\n\n|
+            . qq|package $src_class;\n\n|;
             . qq|# Created by DBIx::Class::Schema::Loader\n|
             . qq|# DO NOT MODIFY THE FIRST PART OF THIS FILE\n\n|;
 
         $src_text .= $self->_make_pod_heading($src_class);
 
-        $src_text .= qq|use strict;\nuse warnings;\n\n|;
+        $src_text .= qq|use strict;\n|;
+        $src_text .= qq|use warnings FATAL => 'all';\n|
+            if $self->add_fatal_warnings;
+
+        $src_text .= qq|\n|;
 
         $src_text .= $self->_base_class_pod($result_base_class)
             unless $result_base_class eq 'DBIx::Class::Core';
@@ -2002,7 +2035,7 @@ sub _dump_to_dir {
             }
         }
         else {
-             $src_text .= qq|use base '$result_base_class';\n|;
+             $src_text .= qq|use base '$result_base_class';\n\n|;
         }
 
         $self->_write_classfile($src_class, $src_text);
@@ -2642,6 +2675,46 @@ sub _setup_src_meta {
     }
 }
 
+sub _add_deploy_hook {
+    my ($self, $table) = @_;
+    my $table_class   = $self->classes->{$table->sql_name};
+
+    if ( $self->can('_table_indices') ) {
+        my $indices = $self->_table_indices($table) || [];
+        if ( @$indices ) {
+            my $stmt = "\nsub sqlt_deploy_hook {\n"
+                . "  my (\$self, \$sqlt_table) = \@_;\n\n";
+            $stmt .= "  \$sqlt_table->extra({mysql_table_type => 'InnoDB'});\n\n";
+            foreach my $index ( @$indices ) {
+                my ($name, $cols) = @$index;
+                $stmt .= "  \$sqlt_table->add_index(\n";
+                $stmt .= "    name => '$name',\n";
+                $stmt .= "    fields => [ '" . join("', '", @$cols) . "' ],\n";
+                $stmt .= "  );\n";
+            }
+            $stmt .= "\n  return;\n}",
+
+            $self->_raw_stmt( $table_class, $stmt );
+        }
+        else {
+            my $stmt = "\nsub sqlt_deploy_hook {\n"
+                . "  my (\$self, \$sqlt_table) = \@_;\n\n";
+            $stmt .= "  \$sqlt_table->extra({mysql_table_type => 'InnoDB'});\n";
+            $stmt .= "\n  return;\n}",
+
+            $self->_raw_stmt( $table_class, $stmt );
+        }
+    }
+    else {
+        my $stmt = "\nsub sqlt_deploy_hook {\n"
+            . "  my (\$self, \$sqlt_table) = \@_;\n\n";
+        $stmt .= "  \$sqlt_table->extra({mysql_table_type => 'InnoDB'});\n";
+        $stmt .= "\n  return;\n}",
+
+        $self->_raw_stmt( $table_class, $stmt );
+    }
+}
+
 sub __columns_info_for {
     my ($self, $table) = @_;
 
@@ -2835,6 +2908,10 @@ sub _table_pk_info { croak "ABSTRACT METHOD" }
 
 # Returns an arrayref of uniqs [ [ foo => [ col1, col2 ] ], [ bar => [ ... ] ] ]
 sub _table_uniq_info { croak "ABSTRACT METHOD" }
+
+# Returns an arrayref of non-unique indices
+#     [ [ foo => [ col1, col2 ] ], [ bar => [ ... ] ] ]
+#sub _table_indices { croak "ABSTRACT METHOD" }
 
 # Returns an arrayref of foreign key constraints, each
 #   being a hashref with 3 keys:

@@ -177,15 +177,17 @@ sub _mysql_table_get_keys {
         my $sth = $self->dbh->prepare('SHOW INDEX FROM '.$table->sql_name);
         $sth->execute;
         while(my $row = $sth->fetchrow_hashref) {
-            next if $row->{Non_unique};
-            push(@{$keydata{$row->{Key_name}}},
+            my $section = $row->{Non_unique} ? 'generic' : 'unique';
+            push(@{$keydata{$section}{$row->{Key_name}}},
                 [ $row->{Seq_in_index}, $self->_lc($row->{Column_name}) ]
             );
         }
-        foreach my $keyname (keys %keydata) {
-            my @ordered_cols = map { $_->[1] } sort { $a->[0] <=> $b->[0] }
-                @{$keydata{$keyname}};
-            $keydata{$keyname} = \@ordered_cols;
+        foreach my $section (keys %keydata) {
+            foreach my $keyname (keys %{$keydata{$section}}) {
+                my @ordered_cols = map { $_->[1] } sort { $a->[0] <=> $b->[0] }
+                    @{$keydata{$section}{$keyname}};
+                $keydata{$section}{$keyname} = \@ordered_cols;
+            }
         }
         $self->{_cache}->{_mysql_keys}->{$table->sql_name} = \%keydata;
     }
@@ -196,20 +198,32 @@ sub _mysql_table_get_keys {
 sub _table_pk_info {
     my ( $self, $table ) = @_;
 
-    return $self->_mysql_table_get_keys($table)->{PRIMARY};
+    return $self->_mysql_table_get_keys($table)->{unique}->{PRIMARY};
 }
 
 sub _table_uniq_info {
     my ( $self, $table ) = @_;
 
     my @uniqs;
-    my $keydata = $self->_mysql_table_get_keys($table);
+    my $keydata = $self->_mysql_table_get_keys($table)->{unique};
     foreach my $keyname (keys %$keydata) {
         next if $keyname eq 'PRIMARY';
         push(@uniqs, [ $keyname => $keydata->{$keyname} ]);
     }
 
     return \@uniqs;
+}
+
+sub _table_indices {
+    my ( $self, $table ) = @_;
+
+    my @indices;
+    my $keydata = $self->_mysql_table_get_keys($table)->{generic};
+    foreach my $keyname (keys %$keydata) {
+        push(@indices, [ $keyname => $keydata->{$keyname} ]);
+    }
+
+    return \@indices;
 }
 
 sub _columns_info_for {
